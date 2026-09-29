@@ -13,9 +13,15 @@ function render(){
  document.getElementById("productCount").textContent=state.products.length;
  document.getElementById("totalStock").textContent=state.products.reduce((a,p)=>a+p.stock,0);
  document.getElementById("lowStock").textContent=state.products.filter(p=>p.stock<=p.minStock).length;
+ const capacity=1500; document.getElementById("occupancy").textContent=Math.min(100,Math.round(state.products.reduce((a,p)=>a+p.stock,0)/capacity*100))+"%";
+ const today=new Date().toDateString(); const movement=state.history.filter(h=>new Date(h.date).toDateString()===today).reduce((a,h)=>a+Math.abs(h.amount),0);
+ document.getElementById("todayMovement").textContent=movement+" adet";
+ const lowest=[...state.products].sort((a,b)=>a.stock-b.stock)[0]; document.getElementById("lowestStock").textContent=lowest?lowest.name:"—";
  const q=(document.getElementById("searchInput").value||"").toLowerCase();
- const list=state.products.filter(p=>(p.name+" "+p.code+" "+p.category).toLowerCase().includes(q));
- document.getElementById("productList").innerHTML=list.length?list.map(p=>'<button class="product" data-id="'+p.id+'"><div class="product-info"><strong>'+esc(p.name)+'</strong><small>'+esc(p.code)+' · '+esc(p.category||"Genel")+'</small></div><div class="stock '+(p.stock<=p.minStock?"low":"ok")+'"><b>'+p.stock+'</b><small>adet</small></div></button>').join(""):'<div class="empty">Aradığınız ürün bulunamadı.</div>';
+ const filter=document.querySelector(".filter.active")?.dataset.filter||"all";
+ let list=state.products.filter(p=>(p.name+" "+p.code+" "+p.category+" "+(p.shelf||"")).toLowerCase().includes(q));
+ if(filter==="low") list=list.filter(p=>p.stock<=p.minStock); if(filter==="stock") list=list.filter(p=>p.stock>p.minStock);
+ document.getElementById("productList").innerHTML=list.length?list.map(p=>'<button class="product" data-id="'+p.id+'"><div class="product-info"><strong>'+esc(p.name)+'</strong><div class="product-meta"><span class="badge">'+esc(p.category)+'</span><span class="badge">Raf '+esc(p.shelf||"—")+'</span></div><small>SKU '+esc(p.sku||p.code)+'</small></div><div class="stock '+(p.stock<=p.minStock?"low":"ok")+'"><b>'+p.stock+'</b><small>adet</small></div></button>').join(""):'<div class="empty">Bu filtrede ürün bulunamadı.</div>';
  document.querySelectorAll(".product").forEach(b=>b.onclick=()=>openProduct(b.dataset.id));
  renderHistory();
 }
@@ -67,3 +73,9 @@ window.addEventListener("load",()=>{
     setTimeout(()=>{intro.style.display="none";app.classList.remove("intro-hidden");},450);
   },2400);
 });
+
+document.querySelectorAll(".filter").forEach(b=>b.onclick=()=>{document.querySelectorAll(".filter").forEach(x=>x.classList.remove("active"));b.classList.add("active");render()});
+document.getElementById("quickAdd").onclick=()=>document.getElementById("modal").classList.remove("hidden");
+document.getElementById("quickReport").onclick=()=>alert("Rapor özeti hazır: "+state.products.length+" ürün, "+state.products.reduce((a,p)=>a+p.stock,0)+" toplam stok, "+state.products.filter(p=>p.stock<=p.minStock).length+" kritik stok.");
+document.getElementById("quickIn").onclick=()=>alert("Stok girişi için listeden bir ürün seçin.");
+document.getElementById("quickOut").onclick=()=>alert("Stok çıkışı için listeden bir ürün seçin.");
