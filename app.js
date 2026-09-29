@@ -59,3 +59,11 @@ document.getElementById("resetBtn").onclick=()=>{if(confirm("Demo verileri ilk h
 const params=new URLSearchParams(location.search);
 if(params.get("product"))openProduct(params.get("product"));
 render();
+/* NFC intro: runs on each NFC page load */
+window.addEventListener("load",()=>{
+  const intro=document.getElementById("intro"), app=document.getElementById("app");
+  setTimeout(()=>{
+    intro.classList.add("intro-hide");
+    setTimeout(()=>{intro.style.display="none";app.classList.remove("intro-hidden");},450);
+  },2400);
+});
